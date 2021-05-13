@@ -6,13 +6,41 @@
 "             for Amiga:  s:.vimrc
 "  for MS-DOS and Win32:  $VIM\_vimrc
 
+" luckrk - from default vim
 set nocompatible	" Use Vim defaults (much better!)
-set bs=2		" allow backspacing over everything in insert mode
+" allow backspacing over everything in insert mode
+set backspace=indent,eol,start
 set ai			" always set autoindenting on
 "set backup		" keep a backup file
 set viminfo='20,\"50	" read/write a .viminfo file, don't store more
 			" than 50 lines of registers
 
+set history=400		" keep 200 lines of command line history
+set ruler		" show the cursor position all the time
+set showcmd		" display incomplete commands
+set wildmenu		" display completion matches in a status line
+"
+" Show @@@ in the last line if it is truncated.
+set display=truncate
+
+" When editing a file, always jump to the last known cursor position.
+" Don't do it when the position is invalid, when inside an event handler
+" (happens when dropping a file on gvim) and for a commit message (it's
+" likely a different one than last time).
+autocmd BufReadPost *
+  \ if line("'\"") >= 1 && line("'\"") <= line("$") && &ft !~# 'commit'
+  \ |   exe "normal! g`\""
+  \ | endif
+
+
+" Convenient command to see the difference between the current buffer and the
+" file it was loaded from, thus the changes you made.
+" Only define it when not defined already.
+" Revert with: ":delcommand DiffOrig".
+if !exists(":DiffOrig")
+  command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis
+		  \ | wincmd p | diffthis
+endif
 
 :set showmatch		" jump emacs style to matching bracket
 
@@ -22,9 +50,21 @@ set viminfo='20,\"50	" read/write a .viminfo file, don't store more
 "default tabs are too wide IMO. uncomment to change them
 " :set tabstop=6 
 
+" Do incremental searching when it's possible to timeout.
+if has('reltime')
+  set incsearch
+endif
+
+" Do not recognize octal numbers for Ctrl-A and Ctrl-X, most users find it
+" confusing.
+set nrformats-=octal
+
+" Show a few lines of context around the cursor.  Note that this makes the
+" text scroll if you mouse-click near the start or end of the window.
+set scrolloff=5
 
 " In text files, always limit the width of text to 78 characters
-autocmd BufRead *.txt set tw=78	
+" autocmd BufRead *.txt set tw=78
 
 " For Win32 GUI: remove 't' flag from 'guioptions': no tearoff menu entries
 " let &guioptions = substitute(&guioptions, "t", "", "g")
@@ -83,15 +123,15 @@ augroup END
 " Uncomment to turn off arrow keys. Using arrow keys is a good habit to 
 " get out of ... 
 
-:map <left> <Nop>
-:map <right> <Nop>
-:map <up> <Nop>
-:map <down> <Nop>
-
-:imap <left> <Nop>
-:imap <right> <Nop>
-:imap <up> <Nop>
-:imap <down> <Nop>
+":map <left> <Nop>
+":map <right> <Nop>
+":map <up> <Nop>
+":map <down> <Nop>
+"
+":imap <left> <Nop>
+":imap <right> <Nop>
+":imap <up> <Nop>
+":imap <down> <Nop>
 
 " Some emacs/pico like keybindings for insert mode
 
@@ -175,4 +215,7 @@ if has("gui_running")
     colorscheme gruvbox
     set guifont=Hack\ 12
     set guioptions=m
+    " I like highlighting strings inside C comments.
+    " Revert with ":unlet c_comment_strings".
+    let c_comment_strings=1
 endif
